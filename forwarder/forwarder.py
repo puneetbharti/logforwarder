@@ -1,6 +1,14 @@
 import os
 import json
 import datetime
+import requests
+
+config = {
+    "host":"http://localhost:3000/save/",
+    "paths":["travel.log"],
+    "pattern":"",
+    "app_name":"travel"
+}
 
 def is_json(myjson):
     try:
@@ -10,22 +18,24 @@ def is_json(myjson):
     return True
 
 def fetchLogFile():
-    output_filename = os.path.normpath("travel.log")
-    with open(output_filename, "r") as in_file:
-        for line in in_file:
-            formatLog(line)
+    for file in config["paths"]:
+        output_filename = os.path.normpath(file)
+        with open(output_filename, "r") as in_file:
+            for line in in_file:
+                formatLog(line)
 
 def formatLog(line):
     formattedLine = {}
     formattedLine["@timestamp"]=datetime.datetime.now().strftime('%B %Y-%m-%d %H:%M:%S')
     formattedLine["message"]= line
     formattedLine["@version"] ='v1'
+    formattedLine["app"] = config["app_name"]
     postLogOutput(formattedLine)
 
 
 def postLogOutput(postData):
-
-    return 0
+    response = requests.post(config['host'], json=postData)
+    print(response)
 
 def verifyPattern():
     return False
