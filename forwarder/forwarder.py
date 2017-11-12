@@ -8,14 +8,16 @@ import json
 import datetime
 import requests
 from pygrok import Grok
+from retrying import retry
 
 config = {
     "host":"http://localhost:3000/save/",
     "paths":["travel.log", "grok.log"],
-    "type": "json",
-    "pattern": "", #""%{WORD:name} is %{WORD:gender}, %{NUMBER:age:int} years old and weighs %{NUMBER:weight:float} kilograms",
+    "type": "grok",
+    "pattern": "%{WORD:name} is %{WORD:gender}, %{NUMBER:age:int} years old and weighs %{NUMBER:weight:float} kilograms",
     "app_name": "travel"
 }
+
 
 def is_json(myjson):
     try:
@@ -59,13 +61,19 @@ def formatLog(line):
 
 def postLogOutput(postData):
     response = requests.post(config['host'], json=json.loads(postData))
-    print(response)
+    if(response.status_code != 200):
+        raise Exception("Unable to send the data")
+    else:
+        return True
 
-def verifyPattern():
-    return False
+"""
+config["offset_file"]="/tmp/forwarder.offset"
 
-def main():
-    fetchLogFile()
+def set_offset(fileObject):
+    f = open(config["offset_file"], 'w')
+    f.write(fileObject)
+"""
+
 
 if __name__ == '__main__':
     fetchLogFile()
