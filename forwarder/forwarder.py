@@ -1,4 +1,10 @@
 """
+@config
+ host: api host
+ path: path of the file
+ type: grok, json or keep it empty
+ pattern: if it is a grok and specify the pattern
+
 Pattern matching is done by using grok library
 it can be of two types either json or grok
 
@@ -8,7 +14,7 @@ import json
 import datetime
 import requests
 from pygrok import Grok
-from retrying import retry
+
 
 config = {
     "host":"http://localhost:3000/save/",
@@ -66,14 +72,6 @@ def postLogOutput(postData):
     else:
         return True
 
-"""
-config["offset_file"]="/tmp/forwarder.offset"
-
-def set_offset(fileObject):
-    f = open(config["offset_file"], 'w')
-    f.write(fileObject)
-"""
 
 
-if __name__ == '__main__':
-    fetchLogFile()
+fetchLogFile()
