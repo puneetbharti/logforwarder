@@ -24,7 +24,13 @@
 * execute ```python forwarder.py``` 
 
 #### Upstart script 
-* copy file forwarder.conf to /etc/init/
+```
+script
+    exec /usr/bin/python /srv/logforwarder/forwarder/forwarder.py
+end script
+
+```
+* copy the above code put it in /etc/init/forwarder.conf
 * make sure the path of the python script is specified correctly.
 * execute ```sudo start forwarder```
 

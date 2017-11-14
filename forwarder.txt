@@ -1,3 +1,0 @@
-script
-    exec /usr/bin/python /srv/logforwarder/forwarder/forwarder.py
-end script
