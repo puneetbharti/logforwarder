@@ -33,14 +33,13 @@ app.get('/', function (request, response) {
 })
 
 app.post('/save', function (req, res) {
-    log.info(req.body);
     es_client.index({
         index: config.elasticsearch.index,
         type: config.elasticsearch.type,
         id: uuid(),
         body: req.body
     }, function (error, response) {
-        log.info(response);
+        log.info("success");
     });
     res.send('success!');
 });

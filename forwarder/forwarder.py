@@ -13,13 +13,16 @@ import os
 import json
 import datetime
 import requests
+import linecache
+import threading
 from pygrok import Grok
+from retrying import retry
 
 config = {
     "host":"http://localhost:3000/save/",
-    "paths":["travel.log", "grok.log"],
-    "type": "grok",
-    "pattern": "%{WORD:name} is %{WORD:gender}, %{NUMBER:age:int} years old and weighs %{NUMBER:weight:float} kilograms",
+    "paths":["travel.log", "grok.log", "/tmp/logApi-info.log", "/tmp/logApi-error.log"],
+    "type": "",#""grok",
+    "pattern": "", # "%{WORD:name} is %{WORD:gender}, %{NUMBER:age:int} years old and weighs %{NUMBER:weight:float} kilograms",
     "app_name": "travel"
 }
 
@@ -32,12 +35,23 @@ def is_json(myjson):
         return False
     return True
 
+def get_offset_line_no(path):
+    offset_line = eval(linecache.getline(config["offset_file"], 1))
+    for offset in offset_line:
+        if (offset['file'] == path):
+            return offset['offset']
+
 def fetchLogFile():
+    if not is_non_zero_file(config['offset_file']):
+        create_offset()
     for file in config["paths"]:
         output_filename = os.path.normpath(file)
-        with open(output_filename, "r") as in_file:
-            for line in in_file:
-                formatLog(file, line)
+        offset = get_offset_line_no(file)
+        line = linecache.getline(output_filename, offset)
+        formatLog(file, line)
+        # with open(output_filename, "r") as in_file:
+        #     for line in in_file:
+        #         formatLog(file, line)
 
 def formatLog(path, line):
     formattedLine = {}
@@ -64,15 +78,15 @@ def formatLog(path, line):
 
     postLogOutput(path, json.dumps(formattedLine))
 
-
+@retry
 def postLogOutput(path, postData):
     response = requests.post(config['host'], json=json.loads(postData))
     if(response.status_code != 200):
         raise Exception("Unable to send the data")
     else:
-        print(path)
         update_offset(path)
-        return True
+        fetchLogFile()
+        #return True
 
 
 
@@ -105,6 +119,6 @@ def update_offset(path):
 def is_non_zero_file(fpath):
     return os.path.isfile(fpath) and os.path.getsize(fpath) > 0
 
+
 fetchLogFile()
-#create_offset()
-#update_offset("travel.log")
+
